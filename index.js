@@ -1,7 +1,7 @@
 // heuristics - educated guess allowing algorithm to skip possible solutions
 // f(n) = g(n) + h(n)
-let cols = 50;
-let rows = 50;
+let cols = 80;
+let rows = 80;
 let grid = new Array(cols);
 let openSet = [];
 let closedSet = []
@@ -37,21 +37,29 @@ function Spot(i, j){
 	this.previous = undefined;
 	this.wall = false;
 
-	if(random(1) < 0.2) {
+	if(random(1) < 0.3) {
 		this.wall = true;
 	}
 
 	this.show = function(colr){
-		fill(colr);
 		if (this.wall) {
 			fill(0);
 			noStroke();
 			ellipse(this.i * w + w / 2, this.j * h + h/2, w-1, h-1);
-		} else {
-			rect(this.i * w, this.j * h, w-1, h-1);
-		}
-// 		noStroke();
-// 		rect(this.i * w, this.j * h, w-1, h-1);
+
+			stroke(0);
+			strokeWeight(w/2);
+			// Lines between neighbors;
+			this.neighbors.forEach(neighbor => {
+				if (neighbor.wall && (
+				(neighbor.i > this.i && neighbor.j == this.j) ||
+					(neighbor.i == this.i && neighbor.j > this.j)
+				)) {
+					line(this.i * w + w/2, this.j * h + h/2, neighbor.i * w + w/2, neighbor.j * h + h / 2);
+				}
+			})
+		} 
+		
 	}
 
 	this.addNeighbors = function(grid) {
@@ -89,9 +97,9 @@ function Spot(i, j){
 
 
  function setup() {
-  	createCanvas(400, 400);
+  	createCanvas(600, 600);
  	console.log("A*")
- 	background(0);
+ 	background(255);
  // used to make size of spots proportionate to canvas;
  	w = width / cols;
  	h = height / rows;
@@ -146,11 +154,15 @@ function draw(){
 		if (current === end) {
 			// Draw out path;
 			// Draw path of shortest distance;
-			console.log("DONE!");
-			console.log("END: ", end)
 			current.show(color(0, 0, 255));
-			console.log("CURRENT: ", current)
 			noLoop();
+			let overlay = document.createElement('div');
+			overlay.setAttribute("style","position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);");
+			let doneBox = document.createElement('div')
+			doneBox.appendChild(document.createTextNode("Search complete!"))
+			doneBox.setAttribute("style", "font-size: 30px; position: absolute; top: 25%; left: 20%; background-color: #fff; padding: 20px; border-radius: 15px; z-index: 10;");
+			overlay.appendChild(doneBox);
+			document.body.appendChild(overlay);
 			return;
 		}
 		// if this doesnt work, create removeArray function to loop through and check if current === openSet[i];
@@ -203,13 +215,13 @@ function draw(){
 		}
 	}
  // make closed set points red. Closed set points have already been evaluated by algorithm.
-	 for (var i = 0; i < closedSet.length; i++) {
-		closedSet[i].show(color(255, 0, 0))
-	 }
-	  // make open set points green. Open set points have yet to be evaluated as best possible solution.
-	 for (var i = 0; i < openSet.length; i++) {
-		openSet[i].show(color(0, 255, 0));
-	 }
+// 	 for (var i = 0; i < closedSet.length; i++) {
+// 		closedSet[i].show(color(255, 0, 0))
+// 	 }
+// 	  // make open set points green. Open set points have yet to be evaluated as best possible solution.
+// 	 for (var i = 0; i < openSet.length; i++) {
+// 		openSet[i].show(color(0, 255, 0));
+// 	 }
 
 
 
@@ -224,8 +236,14 @@ function draw(){
 	    path.push(temp.previous);
 	    temp = temp.previous;
 	  }
-	for (var i = 0; i < path.length; i++) {
-		path[i].show(color(0, 0, 255));
-	}
+	noFill();
+	stroke(255, 0, 255);
+	strokeWeight(w / 2);
+	beginShape();
+ 	for (var i = 0; i < path.length; i++) {
+		let curPoint = path[i];
+ 		vertex(curPoint.i * w + w/2, curPoint.j * h + h/2);
+ 	}
+	endShape()
 		
 }
